@@ -12,24 +12,56 @@
 //    * Once the update goes through, show the customer the total cost of their purchase.
 
 var inquirer = require('inquirer');
+var mysql = require("mysql");
 
-inquirer.prompt([
-    {
-      type: "list",
-      name: "product",
-      message: "What are you buying?",
-      choices: ["guitar","bass","drums","tent","sleeping bag","sleeping mat","tofu","seitan","cliff bar","wraps"]  //can we get this to populate?
-    },
-      {
-      name: "amount",
-      message: "How many?",
-    }
-  ]).then(function(user) {
-      if(product.amount>=inquire.amount){
-        var amountdue=inquire.amount*this.price;
-        console.log("Your Price "+amountdue)
-        
-      }else{console.log("not enoug in stock");}
-      
+var connection = mysql.createConnection({
+  host: "localhost",
+  port: 3306,
+
+  // Your username
+  user: "root",
+
+  // Your password
+  password: "mysql2018",
+  database: "web_storeDB"
+});
+
+connection.connect(function (err) {
+  if (err) throw err;
+  console.log("connected as id " + connection.threadId);
+  afterConnection();
+
+});
+
+function afterConnection() {
+  connection.query("SELECT * FROM products", function (err, res) {
+    if (err) throw err;
+    console.log(res);
+    // connection.end();
+
+
+
+    // inquirer.prompt([
+    //   {
+    //     type: "list",
+    //     name: "product",
+    //     message: "What are you buying?",
+    //     choices: ["guitar", "bass", "drums", "tent", "sleeping bag", "sleeping mat", "tofu", "seitan", "cliff bar", "wraps"]  //can we get this to populate?
+    //   },
+    //   {
+    //     name: "amount",
+    //     message: "How many?",
+    //   }
+    // ]).then(function (user) {
+
+    //   if (product.amount >= inquire.amount) {
+    //     // * This means updating the SQL database to reflect the remaining quantity.
+    //     // * Once the update goes through, show the customer the total cost of their purchase.
+    //     var amountdue = inquire.amount * this.price;
+    //     console.log("Your Price " + amountdue)
+
+    //   } else { console.log("Insufficient quantity!"); }
+
+    // });
   });
-  
+}
