@@ -25,7 +25,11 @@ inquirer.prompt([
       message: "How many?",
     }
   ]).then(function(user) {
-      if(product(amount))
-  
+      if(product.amount>=inquire.amount){
+        var amountdue=inquire.amount*this.price;
+        console.log("Your Price "+amountdue)
+        
+      }else{console.log("not enoug in stock");}
+      
   });
   
