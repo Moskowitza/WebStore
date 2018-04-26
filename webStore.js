@@ -14,6 +14,7 @@
 var inquirer = require('inquirer');
 var mysql = require("mysql");
 
+//code to connect and retrieve information from mysql database
 var connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
@@ -30,38 +31,64 @@ connection.connect(function (err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId);
   afterConnection();
-
 });
 
 function afterConnection() {
   connection.query("SELECT * FROM products", function (err, res) {
     if (err) throw err;
-    console.log(res);
-    // connection.end();
-
-
-
-    // inquirer.prompt([
-    //   {
-    //     type: "list",
-    //     name: "product",
-    //     message: "What are you buying?",
-    //     choices: ["guitar", "bass", "drums", "tent", "sleeping bag", "sleeping mat", "tofu", "seitan", "cliff bar", "wraps"]  //can we get this to populate?
-    //   },
-    //   {
-    //     name: "amount",
-    //     message: "How many?",
-    //   }
-    // ]).then(function (user) {
-
-    //   if (product.amount >= inquire.amount) {
-    //     // * This means updating the SQL database to reflect the remaining quantity.
-    //     // * Once the update goes through, show the customer the total cost of their purchase.
-    //     var amountdue = inquire.amount * this.price;
-    //     console.log("Your Price " + amountdue)
-
-    //   } else { console.log("Insufficient quantity!"); }
-
-    // });
+    for (var i = 0; i < res.length; i++) {
+      console.log(res[i].product_name + " | " + "$" + res[i].price);
+    }
+    purchaseRequest(res)
   });
+}
+// connection.end();
+function purchaseRequest(res) {
+  inquirer.prompt([
+    {
+      type: "list",
+      name: "choice",
+      message: "What are you buying?",
+      choices: ["guitar", "bass", "drums", "tent", "sleeping bag", "sleeping mat", "tofu", "seitan", "cliff bar", "wraps"]  //can we get this to populate?
+    },
+    {
+      name: "amount",
+      message: "How many?",
+    }
+  ]).then(function (answer,res) {
+    // 7. Once the customer has placed the order, your application should check if your store has enough of the product to meet the customer's request.
+    //grab that response from the database
+    var chosenItem;
+    for (var i = 0; i < res.length; i++) {
+      if (res[i].product_name === answer.choice) {
+        chosenItem = res[i];
+      }
+    }
+    if (chosenItem.stock_quantity >= answer.amount) {
+      completeOrder(chosenItem);
+    } else {
+      console.log("Sorry, we dont have " + chosenItem.stock_quantity + " " +
+        chosenItem.product_name + "'s in stock");
+    }
+  });
+}
+
+function completeOrder(chosenItem) {
+  console.log("good news, We have " + chosenItem.stock_quantity + " " +chosenItem.product_name + "'s in stock");
+  // * This means updating the SQL database to reflect the remaining quantity.
+  connection.query("UPDATE products SET ? WHERE ?",
+    [
+      {
+        stock_quantity: stock_quantity - answer.amount
+      },
+      {
+        id: chosenItem.id
+      }
+    ], function (error) {
+      if (error) throw err;
+      var amountdue = chosenItem.price * res.amount;
+      // * Once the update goes through, show the customer the total cost of their purchase.
+      console.log("Your Price: " + amountdue);
+    }
+  );
 }
