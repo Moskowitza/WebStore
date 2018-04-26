@@ -53,11 +53,12 @@ function purchaseRequest(res) {
     },
     {
       name: "amount",
-      message: "How many?",
+      message: "How many?"
     }
-  ]).then(function (answer,res) {
+  ]).then(function (answer) {
     // 7. Once the customer has placed the order, your application should check if your store has enough of the product to meet the customer's request.
     //grab that response from the database
+
     var chosenItem;
     for (var i = 0; i < res.length; i++) {
       if (res[i].product_name === answer.choice) {
@@ -65,30 +66,37 @@ function purchaseRequest(res) {
       }
     }
     if (chosenItem.stock_quantity >= answer.amount) {
-      completeOrder(chosenItem);
+      completeOrder(chosenItem,answer);
     } else {
-      console.log("Sorry, we dont have " + chosenItem.stock_quantity + " " +
-        chosenItem.product_name + "'s in stock");
+      console.log("Sorry, we only have " + chosenItem.stock_quantity + " " +
+        chosenItem.product_name + "s in stock");
+        purchaseRequest(res);
     }
   });
 }
 
-function completeOrder(chosenItem) {
-  console.log("good news, We have " + chosenItem.stock_quantity + " " +chosenItem.product_name + "'s in stock");
+function completeOrder(chosenItem,answer) {
+  console.log("good news, We have " + chosenItem.stock_quantity + " " +chosenItem.product_name + "s in stock");
   // * This means updating the SQL database to reflect the remaining quantity.
-  connection.query("UPDATE products SET ? WHERE ?",
+  console.log("answer.amount "+ answer.amount)
+  var adjustment=chosenItem.stock_quantity - answer.amount;
+  console.log(adjustment)//so far no error
+  connection.query(
+    "UPDATE products SET ? WHERE ?",
     [
       {
-        stock_quantity: stock_quantity - answer.amount
+        stock_quantity: adjustment
       },
       {
-        id: chosenItem.id
+        product_name: chosenItem.product_name
       }
-    ], function (error) {
+    ], 
+    function (error,res) {
       if (error) throw err;
-      var amountdue = chosenItem.price * res.amount;
+      var amountdue = chosenItem.price * answer.amount;
       // * Once the update goes through, show the customer the total cost of their purchase.
       console.log("Your Price: " + amountdue);
+      afterConnection();
     }
   );
 }
